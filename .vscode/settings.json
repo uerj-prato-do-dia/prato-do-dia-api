@@ -1,0 +1,34 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    }
+  },
+  "search.exclude": {
+    "**/.venv": true,
+    "**/.pytest_cache": true,
+    "**/.ruff_cache": true,
+    "**/__pycache__": true,
+    "**/build": true,
+    "**/dist": true,
+    "**/data/*.db": true,
+    "**/data/*.sqlite": true,
+    "**/data/*.sqlite3": true
+  },
+  "files.watcherExclude": {
+    "**/.venv/**": true,
+    "**/.pytest_cache/**": true,
+    "**/.ruff_cache/**": true,
+    "**/__pycache__/**": true,
+    "**/build/**": true,
+    "**/dist/**": true,
+    "**/data/*.db": true,
+    "**/data/*.sqlite": true,
+    "**/data/*.sqlite3": true
+  },
+  "python.analysis.typeCheckingMode": "off"
+}
+
