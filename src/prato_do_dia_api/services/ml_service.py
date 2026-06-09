@@ -9,6 +9,7 @@ from prato_do_dia_ml.segmenter import SamOnnxSegmenter
 ML_ROOT = Path("/home/gabe/projects/prato-do-dia/prato-do-dia-ml")
 MODELS_DIR = ML_ROOT / "models"
 DATA_DIR = Path("/home/gabe/projects/prato-do-dia/prato-do-dia-api/data")
+UPLOADS_DIR = DATA_DIR / "uploads"
 
 
 class MLService:
@@ -47,8 +48,9 @@ class MLService:
             mask_dir = DATA_DIR / "masks"
             overlay_dir = DATA_DIR / "overlays"
             report_dir = DATA_DIR / "reports"
+            uploads_dir = DATA_DIR / "uploads"
 
-            for directory in (output_dir, mask_dir, overlay_dir, report_dir):
+            for directory in (output_dir, mask_dir, overlay_dir, report_dir, uploads_dir):
                 directory.mkdir(parents=True, exist_ok=True)
 
             cls._pipeline = FoodSegmentationPipeline(
