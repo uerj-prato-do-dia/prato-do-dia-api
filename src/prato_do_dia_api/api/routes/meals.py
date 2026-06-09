@@ -84,7 +84,9 @@ async def analyze_meal(file: UploadFile = File(...), db: Session = Depends(get_d
 
         # Salva cada componente segmentado individualmente
         for seg in result.segmentations:
-            profile = FOOD_PROFILES.get(seg.class_id, {"name": "Outro Alimento"})
+            if seg.class_id not in FOOD_PROFILES:
+                continue
+            profile = FOOD_PROFILES[seg.class_id]
             label = str(profile["name"])
 
             # Serializa os pontos do polígono em formato JSON string
