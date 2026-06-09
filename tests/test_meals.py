@@ -8,7 +8,7 @@ from prato_do_dia_api.db.models import MealComponent, MealRecord
 from prato_do_dia_api.db.session import SessionLocal
 from prato_do_dia_api.main import app
 
-TEST_IMAGE_PATH = Path("/home/gabe/projects/prato-do-dia/prato-do-dia-ml/data/input/imagem1.jpg")
+TEST_IMAGE_PATH = Path(__file__).resolve().parents[2] / "prato-do-dia-ml" / "data" / "input" / "imagem1.jpg"
 
 
 async def get_meals_analyze_response() -> httpx.Response:
