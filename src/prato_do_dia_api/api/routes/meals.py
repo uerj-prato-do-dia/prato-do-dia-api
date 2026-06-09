@@ -76,7 +76,7 @@ async def analyze_meal(file: UploadFile = File(...), db: Session = Depends(get_d
             protein=response.protein,
             carbs=response.carbs,
             fat=response.fat,
-            image_path=str(persistent_path),
+            image_path=image_name,
             score=response.score,
         )
         db.add(db_meal)

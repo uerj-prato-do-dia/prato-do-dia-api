@@ -67,7 +67,9 @@ def test_meals_analyze_endpoint() -> None:
         assert db_meal.carbs == json_data["carbs"]
         assert db_meal.fat == json_data["fat"]
         assert db_meal.score == json_data["score"]
-        assert Path(db_meal.image_path).exists()
+        from prato_do_dia_api.services.ml_service import UPLOADS_DIR
+
+        assert (UPLOADS_DIR / db_meal.image_path).exists()
 
         # Busca os componentes associados a essa refeição
         db_components = db.query(MealComponent).filter(MealComponent.meal_id == db_meal.id).all()
