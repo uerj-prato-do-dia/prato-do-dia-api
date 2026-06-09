@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+
 from sqlalchemy import ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
@@ -20,7 +20,7 @@ class MealRecord(Base):
     score: Mapped[float] = mapped_column()
     timestamp: Mapped[datetime] = mapped_column(server_default=func.now())
 
-    components: Mapped[List["MealComponent"]] = relationship(
+    components: Mapped[list["MealComponent"]] = relationship(
         "MealComponent", back_populates="meal", cascade="all, delete-orphan"
     )
 
@@ -37,4 +37,4 @@ class MealComponent(Base):
     meal: Mapped["MealRecord"] = relationship("MealRecord", back_populates="components")
 
 
-__all__ = ["Base", "MealRecord", "MealComponent"]
+__all__ = ["Base", "MealComponent", "MealRecord"]

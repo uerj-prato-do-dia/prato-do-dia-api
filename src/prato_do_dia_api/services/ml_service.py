@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from prato_do_dia_ml.detector import YoloOnnxDetector
@@ -5,10 +6,17 @@ from prato_do_dia_ml.pipeline import FoodSegmentationPipeline
 from prato_do_dia_ml.schema import PipelineResult
 from prato_do_dia_ml.segmenter import SamOnnxSegmenter
 
-# Diretórios locais e compartilhados
-ML_ROOT = Path("/home/gabe/projects/prato-do-dia/prato-do-dia-ml")
-MODELS_DIR = ML_ROOT / "models"
-DATA_DIR = Path("/home/gabe/projects/prato-do-dia/prato-do-dia-api/data")
+# Resolve caminhos relativos ao diretório do projeto FastAPI
+project_root = Path(__file__).resolve().parent.parent.parent.parent
+
+# Tenta ler de variáveis de ambiente, senão resolve na estrutura padrão do workspace
+env_ml_root = os.environ.get("ML_ROOT")
+ML_ROOT = Path(env_ml_root) if env_ml_root else project_root.parent / "prato-do-dia-ml"
+
+env_models_dir = os.environ.get("ML_MODELS_DIR")
+MODELS_DIR = Path(env_models_dir) if env_models_dir else ML_ROOT / "models"
+
+DATA_DIR = project_root / "data"
 UPLOADS_DIR = DATA_DIR / "uploads"
 
 

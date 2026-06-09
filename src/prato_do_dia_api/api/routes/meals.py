@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from prato_do_dia_api.db.models import MealComponent, MealRecord
 from prato_do_dia_api.db.session import get_db
 from prato_do_dia_api.schemas.meal import MealAnalysisResponse
-from prato_do_dia_api.services.ml_service import MLService, UPLOADS_DIR
+from prato_do_dia_api.services.ml_service import UPLOADS_DIR, MLService
 from prato_do_dia_api.services.nutrition_mapper import FOOD_PROFILES, map_detections_to_nutrition
 
 router = APIRouter(prefix="/meals", tags=["meals"])
@@ -73,11 +73,11 @@ async def analyze_meal(
             db.add(db_component)
 
         db.commit()
-        return response
-
-    except Exception as e:
+    except Exception:
         db.rollback()
         # Se falhar a IA ou a escrita de banco, remove o arquivo persistido para evitar lixo
         if persistent_path.exists():
             persistent_path.unlink()
-        raise e
+        raise
+    else:
+        return response

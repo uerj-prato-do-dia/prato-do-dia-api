@@ -173,10 +173,7 @@ def map_detections_to_nutrition(class_ids: list[int]) -> MealAnalysisResponse:
 
     # Concatena nomes (ex: "Arroz e Feijão")
     names = [str(p["name"]) for p in profiles]
-    if len(names) > 1:
-        name = " e ".join((", ".join(names[:-1]), names[-1]))
-    else:
-        name = names[0]
+    name = " e ".join((", ".join(names[:-1]), names[-1])) if len(names) > 1 else names[0]
 
     # Consolida valores somando calorias/macros e tirando a média do score
     calories = sum(int(p["calories"]) for p in profiles)

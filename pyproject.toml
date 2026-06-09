@@ -36,7 +36,7 @@ testpaths = ["tests"]
 pythonpath = ["src"]
 
 [tool.ruff]
-line-length = 88
+line-length = 120
 target-version = "py312"
 src = ["src", "tests"]
 
@@ -45,6 +45,8 @@ select = ["E", "F", "I", "UP", "B", "SIM", "ARG", "PTH", "TRY", "RUF"]
 ignore = [
     # TRY003 pushes trivial exception messages into custom classes too early for this prototype.
     "TRY003",
+    # B008 allows FastAPI Depends and File defaults in endpoints.
+    "B008",
 ]
 
 [tool.basedpyright]

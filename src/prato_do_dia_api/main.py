@@ -8,7 +8,7 @@ from prato_do_dia_api.core.config import get_settings
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI):
     # Inicializa o banco de dados no startup
     from prato_do_dia_api.db.session import init_db
     init_db()
