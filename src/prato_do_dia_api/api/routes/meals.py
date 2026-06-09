@@ -42,6 +42,8 @@ async def analyze_meal(
 
         # Consolida e mapeia os valores nutricionais do prato
         response = map_detections_to_nutrition(class_ids)
+        response.image_url = f"/static/uploads/{image_name}"
+        response.overlay_url = f"/static/overlays/{meal_uuid}_overlay.jpg"
 
         # Salva o cabeçalho da refeição no banco de dados
         db_meal = MealRecord(

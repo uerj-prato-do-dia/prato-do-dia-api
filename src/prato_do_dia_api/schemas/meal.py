@@ -9,3 +9,5 @@ class MealAnalysisResponse(BaseModel):
     fat: float
     ingredients: list[str]
     score: float
+    image_url: str | None = None
+    overlay_url: str | None = None
