@@ -33,10 +33,10 @@ Create the environment and install dependencies:
 uv sync
 ```
 
-Run the API:
+Run the API (listening on all interfaces using the random port `42917` to allow local mobile connections):
 
 ```bash
-uv run uvicorn prato_do_dia_api.main:app --reload
+uv run uvicorn prato_do_dia_api.main:app --host 0.0.0.0 --port 42917 --reload
 ```
 
 ## Endpoints

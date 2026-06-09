@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 
 from prato_do_dia_api.api.routes.health import router as health_router
+from prato_do_dia_api.api.routes.meals import router as meals_router
 from prato_do_dia_api.core.config import get_settings
 
 settings = get_settings()
@@ -22,3 +23,4 @@ def read_root() -> dict[str, str]:
 
 
 app.include_router(health_router)
+app.include_router(meals_router)
