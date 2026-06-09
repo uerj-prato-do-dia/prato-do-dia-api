@@ -90,3 +90,21 @@ def test_meals_analyze_endpoint() -> None:
                 assert isinstance(pt[1], (int, float))
     finally:
         db.close()
+
+
+async def get_meals_analyze_invalid_response() -> httpx.Response:
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(
+        transport=transport,
+        base_url="http://testserver",
+    ) as client:
+        # Envia um arquivo de texto corrompido fingindo ser uma imagem
+        files = {"file": ("corrupted.jpg", b"not an image", "image/jpeg")}
+        return await client.post("/meals/analyze", files=files)
+
+
+def test_meals_analyze_endpoint_invalid_image() -> None:
+    response = asyncio.run(get_meals_analyze_invalid_response())
+    assert response.status_code == 400
+    assert "não é uma imagem válida ou está corrompido" in response.json()["detail"]
+

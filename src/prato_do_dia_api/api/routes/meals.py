@@ -1,9 +1,9 @@
 import json
-import shutil
 import uuid
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from PIL import Image
 from sqlalchemy.orm import Session
 
 from prato_do_dia_api.db.models import MealComponent, MealRecord
@@ -27,8 +27,24 @@ async def analyze_meal(file: UploadFile = File(...), db: Session = Depends(get_d
     UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
     persistent_path = UPLOADS_DIR / image_name
 
-    with persistent_path.open("wb") as f:
-        shutil.copyfileobj(file.file, f)
+    try:
+        # Abre a imagem com o Pillow para validar o formato e remover metadados EXIF
+        file.file.seek(0)
+        with Image.open(file.file) as img:
+            # Trata canais alpha se for salvar como JPEG
+            save_format = img.format or "JPEG"
+            if suffix.lower() in (".jpg", ".jpeg") and img.mode in ("RGBA", "LA"):
+                img_to_save = img.convert("RGB")
+            else:
+                img_to_save = img
+
+            # Salva a imagem sem os metadados EXIF (exif= None) com alta qualidade para o ML
+            img_to_save.save(persistent_path, format=save_format, quality=95)
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"O arquivo enviado não é uma imagem válida ou está corrompido: {e}",
+        ) from e
 
     try:
         # Executa a inferência real do modelo através do MLService
