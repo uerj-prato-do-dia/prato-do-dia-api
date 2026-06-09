@@ -13,6 +13,7 @@ from prato_do_dia_api.services.ml_service import DATA_DIR
 async def lifespan(_app: FastAPI):
     # Inicializa o banco de dados no startup
     from prato_do_dia_api.db.session import init_db
+
     init_db()
     yield
 

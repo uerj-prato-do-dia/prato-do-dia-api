@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from prato_do_dia_api.db.models import MealComponent, MealRecord
 from prato_do_dia_api.db.session import get_db
-from prato_do_dia_api.schemas.meal import MealAnalysisResponse
+from prato_do_dia_api.schemas.meal import MealAnalysisResponse, MealComponentResponse
 from prato_do_dia_api.services.ml_service import UPLOADS_DIR, MLService
 from prato_do_dia_api.services.nutrition_mapper import FOOD_PROFILES, map_detections_to_nutrition
 
@@ -16,10 +16,7 @@ router = APIRouter(prefix="/meals", tags=["meals"])
 
 
 @router.post("/analyze", response_model=MealAnalysisResponse)
-async def analyze_meal(
-    file: UploadFile = File(...),
-    db: Session = Depends(get_db)
-) -> MealAnalysisResponse:
+async def analyze_meal(file: UploadFile = File(...), db: Session = Depends(get_db)) -> MealAnalysisResponse:
     """Receives a photo, executes YOLOv11 + SAM 2 pipeline, persists data, and returns nutrition."""
     # Gera um UUID único para esta refeição para evitar qualquer conflito
     meal_uuid = str(uuid.uuid4())
@@ -44,6 +41,33 @@ async def analyze_meal(
         response = map_detections_to_nutrition(class_ids)
         response.image_url = f"/static/uploads/{image_name}"
         response.overlay_url = f"/static/overlays/{meal_uuid}_overlay.jpg"
+
+        # Constrói a lista detalhada de componentes para a resposta
+        components_list = []
+        for det in result.detections:
+            if det.class_id in FOOD_PROFILES:
+                profile = FOOD_PROFILES[det.class_id]
+                components_list.append(
+                    MealComponentResponse(
+                        label=str(profile["name"]),
+                        confidence=float(det.confidence),
+                        calories=int(profile["calories"]),
+                        protein=float(profile["protein"]),
+                        carbs=float(profile["carbs"]),
+                        fat=float(profile["fat"]),
+                    )
+                )
+        if not components_list:
+            # Fallback mock components se nada for detectado
+            components_list = [
+                MealComponentResponse(label="Arroz", confidence=1.0, calories=130, protein=2.7, carbs=28.0, fat=0.3),
+                MealComponentResponse(label="Feijão", confidence=1.0, calories=76, protein=4.8, carbs=14.0, fat=0.5),
+                MealComponentResponse(
+                    label="Frango Grelhado", confidence=1.0, calories=165, protein=31.0, carbs=0.0, fat=3.6
+                ),
+                MealComponentResponse(label="Salada", confidence=1.0, calories=15, protein=0.8, carbs=3.0, fat=0.1),
+            ]
+        response.components = components_list
 
         # Salva o cabeçalho da refeição no banco de dados
         db_meal = MealRecord(

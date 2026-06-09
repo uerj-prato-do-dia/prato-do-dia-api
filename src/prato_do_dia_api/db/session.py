@@ -37,6 +37,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 def init_db() -> None:
     """Creates all database tables automatically if they do not exist."""
     from prato_do_dia_api.db import models  # noqa: F401
+
     Base.metadata.create_all(bind=engine)
 
 

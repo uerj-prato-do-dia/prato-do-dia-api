@@ -29,6 +29,7 @@ def test_meals_analyze_endpoint() -> None:
 
     # Garante que as tabelas de banco de dados estejam criadas
     from prato_do_dia_api.db.session import init_db
+
     init_db()
 
     response = asyncio.run(get_meals_analyze_response())
@@ -75,7 +76,7 @@ def test_meals_analyze_endpoint() -> None:
         for comp in db_components:
             assert comp.label != ""
             assert comp.confidence > 0.0
-            
+
             # Valida se o polígono foi salvo como JSON válido
             poly = json.loads(comp.polygon)
             assert isinstance(poly, list)
