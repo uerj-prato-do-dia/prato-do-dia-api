@@ -1,288 +1,74 @@
+from dataclasses import dataclass
+
 from prato_do_dia_api.schemas.meal import MealAnalysisResponse
 
-# Mapeamento nutricional para as classes de alimentos do dataset customizado
-FOOD_PROFILES: dict[int, dict[str, object]] = {
-    0: {
-        "name": "Tomate",
-        "calories": 20,
-        "protein": 1.0,
-        "carbs": 4.0,
-        "fat": 0.2,
-        "ingredients": ["Tomate"],
-        "score": 10.0,
-    },
-    1: {
-        "name": "Salada Verde",
-        "calories": 15,
-        "protein": 1.2,
-        "carbs": 3.0,
-        "fat": 0.1,
-        "ingredients": ["Alface", "Rúcula"],
-        "score": 10.0,
-    },
-    2: {
-        "name": "Feijão",
-        "calories": 130,
-        "protein": 8.0,
-        "carbs": 24.0,
-        "fat": 0.5,
-        "ingredients": ["Feijão preto"],
-        "score": 9.0,
-    },
-    3: {
-        "name": "Batata Frita",
-        "calories": 312,
-        "protein": 3.4,
-        "carbs": 41.0,
-        "fat": 15.0,
-        "ingredients": ["Batata", "Óleo vegetal"],
-        "score": 4.5,
-    },
-    4: {
-        "name": "Arroz",
-        "calories": 130,
-        "protein": 2.7,
-        "carbs": 28.0,
-        "fat": 0.3,
-        "ingredients": ["Arroz branco"],
-        "score": 8.0,
-    },
-    5: {
-        "name": "Carne Moída",
-        "calories": 250,
-        "protein": 26.0,
-        "carbs": 0.0,
-        "fat": 15.0,
-        "ingredients": ["Carne bovina"],
-        "score": 7.5,
-    },
-    6: {
-        "name": "Batata Cozida",
-        "calories": 87,
-        "protein": 2.0,
-        "carbs": 20.0,
-        "fat": 0.1,
-        "ingredients": ["Batata"],
-        "score": 8.5,
-    },
-    7: {
-        "name": "Aspargos",
-        "calories": 20,
-        "protein": 2.2,
-        "carbs": 3.8,
-        "fat": 0.1,
-        "ingredients": ["Aspargos"],
-        "score": 9.5,
-    },
-    8: {
-        "name": "Cenoura",
-        "calories": 41,
-        "protein": 0.9,
-        "carbs": 10.0,
-        "fat": 0.2,
-        "ingredients": ["Cenoura"],
-        "score": 10.0,
-    },
-    9: {
-        "name": "Ovo",
-        "calories": 155,
-        "protein": 13.0,
-        "carbs": 1.1,
-        "fat": 11.0,
-        "ingredients": ["Ovo"],
-        "score": 9.0,
-    },
-    10: {
-        "name": "Outro Alimento",
-        "calories": 100,
-        "protein": 5.0,
-        "carbs": 15.0,
-        "fat": 2.0,
-        "ingredients": ["Acompanhamento"],
-        "score": 7.0,
-    },
-    11: {
-        "name": "Frango Grelhado",
-        "calories": 165,
-        "protein": 31.0,
-        "carbs": 0.0,
-        "fat": 3.6,
-        "ingredients": ["Frango"],
-        "score": 9.0,
-    },
-    12: {
-        "name": "Azeitona",
-        "calories": 115,
-        "protein": 0.8,
-        "carbs": 6.0,
-        "fat": 11.0,
-        "ingredients": ["Azeitona"],
-        "score": 7.0,
-    },
-    13: {
-        "name": "Batata Palha",
-        "calories": 500,
-        "protein": 6.0,
-        "carbs": 50.0,
-        "fat": 30.0,
-        "ingredients": ["Batata", "Gordura vegetal"],
-        "score": 4.0,
-    },
-    14: {
-        "name": "Estrogonofe",
-        "calories": 350,
-        "protein": 20.0,
-        "carbs": 10.0,
-        "fat": 25.0,
-        "ingredients": ["Carne", "Creme de leite", "Champignon"],
-        "score": 6.0,
-    },
-    15: {
-        "name": "Carne de Porco",
-        "calories": 242,
-        "protein": 27.0,
-        "carbs": 0.0,
-        "fat": 14.0,
-        "ingredients": ["Lombo suíno"],
-        "score": 8.0,
-    },
-    46: {
-        "name": "Banana",
-        "calories": 89,
-        "protein": 1.1,
-        "carbs": 22.8,
-        "fat": 0.3,
-        "ingredients": ["Banana"],
-        "score": 9.0,
-    },
-    47: {
-        "name": "Maçã",
-        "calories": 52,
-        "protein": 0.3,
-        "carbs": 13.8,
-        "fat": 0.2,
-        "ingredients": ["Maçã"],
-        "score": 9.5,
-    },
-    48: {
-        "name": "Sanduíche",
-        "calories": 350,
-        "protein": 15.0,
-        "carbs": 40.0,
-        "fat": 12.0,
-        "ingredients": ["Pão", "Queijo", "Presunto"],
-        "score": 7.0,
-    },
-    49: {
-        "name": "Laranja",
-        "calories": 47,
-        "protein": 0.9,
-        "carbs": 11.8,
-        "fat": 0.1,
-        "ingredients": ["Laranja"],
-        "score": 10.0,
-    },
-    50: {
-        "name": "Brócolis",
-        "calories": 34,
-        "protein": 2.8,
-        "carbs": 6.6,
-        "fat": 0.4,
-        "ingredients": ["Brócolis"],
-        "score": 10.0,
-    },
-    51: {
-        "name": "Cenoura",
-        "calories": 41,
-        "protein": 0.9,
-        "carbs": 10.0,
-        "fat": 0.2,
-        "ingredients": ["Cenoura"],
-        "score": 10.0,
-    },
-    52: {
-        "name": "Cachorro-Quente",
-        "calories": 290,
-        "protein": 10.0,
-        "carbs": 28.0,
-        "fat": 16.0,
-        "ingredients": ["Pão de leite", "Salsicha"],
-        "score": 4.0,
-    },
-    53: {
-        "name": "Pizza",
-        "calories": 266,
-        "protein": 11.0,
-        "carbs": 33.0,
-        "fat": 10.0,
-        "ingredients": ["Massa de pizza", "Queijo", "Tomate"],
-        "score": 5.5,
-    },
-    54: {
-        "name": "Rosquinha/Bolinho",
-        "calories": 452,
-        "protein": 4.9,
-        "carbs": 51.3,
-        "fat": 25.2,
-        "ingredients": ["Farinha", "Açúcar", "Gordura"],
-        "score": 3.0,
-    },
-    55: {
-        "name": "Bolo",
-        "calories": 389,
-        "protein": 2.5,
-        "carbs": 53.0,
-        "fat": 15.0,
-        "ingredients": ["Farinha", "Açúcar", "Ovos"],
-        "score": 3.5,
-    },
+
+@dataclass(frozen=True)
+class FoodProfile:
+    name: str
+    calories: int
+    protein: float
+    carbs: float
+    fat: float
+    ingredients: tuple[str, ...]
+    score: float
+
+
+FOOD_PROFILES: dict[int, FoodProfile] = {
+    0: FoodProfile("Tomate", 20, 1.0, 4.0, 0.2, ("Tomate",), 10.0),
+    1: FoodProfile("Salada Verde", 15, 1.2, 3.0, 0.1, ("Alface", "Rúcula"), 10.0),
+    2: FoodProfile("Feijão", 130, 8.0, 24.0, 0.5, ("Feijão preto",), 9.0),
+    3: FoodProfile("Batata Frita", 312, 3.4, 41.0, 15.0, ("Batata", "Óleo vegetal"), 4.5),
+    4: FoodProfile("Arroz", 130, 2.7, 28.0, 0.3, ("Arroz branco",), 8.0),
+    5: FoodProfile("Carne Moída", 250, 26.0, 0.0, 15.0, ("Carne bovina",), 7.5),
+    6: FoodProfile("Batata Cozida", 87, 2.0, 20.0, 0.1, ("Batata",), 8.5),
+    7: FoodProfile("Aspargos", 20, 2.2, 3.8, 0.1, ("Aspargos",), 9.5),
+    8: FoodProfile("Cenoura", 41, 0.9, 10.0, 0.2, ("Cenoura",), 10.0),
+    9: FoodProfile("Ovo", 155, 13.0, 1.1, 11.0, ("Ovo",), 9.0),
+    10: FoodProfile("Outro Alimento", 100, 5.0, 15.0, 2.0, ("Acompanhamento",), 7.0),
+    11: FoodProfile("Frango Grelhado", 165, 31.0, 0.0, 3.6, ("Frango",), 9.0),
+    12: FoodProfile("Azeitona", 115, 0.8, 6.0, 11.0, ("Azeitona",), 7.0),
+    13: FoodProfile("Batata Palha", 500, 6.0, 50.0, 30.0, ("Batata", "Gordura vegetal"), 4.0),
+    14: FoodProfile("Estrogonofe", 350, 20.0, 10.0, 25.0, ("Carne", "Creme de leite", "Champignon"), 6.0),
+    15: FoodProfile("Carne de Porco", 242, 27.0, 0.0, 14.0, ("Lombo suíno",), 8.0),
+    46: FoodProfile("Banana", 89, 1.1, 22.8, 0.3, ("Banana",), 9.0),
+    47: FoodProfile("Maçã", 52, 0.3, 13.8, 0.2, ("Maçã",), 9.5),
+    48: FoodProfile("Sanduíche", 350, 15.0, 40.0, 12.0, ("Pão", "Queijo", "Presunto"), 7.0),
+    49: FoodProfile("Laranja", 47, 0.9, 11.8, 0.1, ("Laranja",), 10.0),
+    50: FoodProfile("Brócolis", 34, 2.8, 6.6, 0.4, ("Brócolis",), 10.0),
+    51: FoodProfile("Cenoura", 41, 0.9, 10.0, 0.2, ("Cenoura",), 10.0),
+    52: FoodProfile("Cachorro-Quente", 290, 10.0, 28.0, 16.0, ("Pão de leite", "Salsicha"), 4.0),
+    53: FoodProfile("Pizza", 266, 11.0, 33.0, 10.0, ("Massa de pizza", "Queijo", "Tomate"), 5.5),
+    54: FoodProfile("Rosquinha/Bolinho", 452, 4.9, 51.3, 25.2, ("Farinha", "Açúcar", "Gordura"), 3.0),
+    55: FoodProfile("Bolo", 389, 2.5, 53.0, 15.0, ("Farinha", "Açúcar", "Ovos"), 3.5),
 }
 
-FALLBACK_PROFILE = {
-    "name": "Prato Feito",
-    "calories": 650,
-    "protein": 25.0,
-    "carbs": 45.0,
-    "fat": 15.0,
-    "ingredients": ["Arroz", "Feijão", "Frango grelhado", "Salada"],
-    "score": 8.2,
-}
+FALLBACK_PROFILE = FoodProfile(
+    "Prato Feito",
+    650,
+    25.0,
+    45.0,
+    15.0,
+    ("Arroz", "Feijão", "Frango grelhado", "Salada"),
+    8.2,
+)
 
 
 def map_detections_to_nutrition(class_ids: list[int]) -> MealAnalysisResponse:
-    """Consolidates a list of detected class IDs into a single nutritional response."""
-    # Filtra apenas as classes que representam comida no dataset
+    """Consolidates a list of detected class IDs into a legacy nutritional response."""
     food_ids = [cid for cid in class_ids if cid in FOOD_PROFILES]
+    profiles = [FOOD_PROFILES[cid] for cid in set(food_ids)] or [FALLBACK_PROFILE]
 
-    if not food_ids:
-        # Se nada for detectado, retorna o prato feito simulado
-        return MealAnalysisResponse(**FALLBACK_PROFILE)
-
-    # Coleta perfis únicos de alimentos
-    profiles = [FOOD_PROFILES[cid] for cid in set(food_ids)]
-
-    # Concatena nomes (ex: "Arroz e Feijão")
-    names = [str(p["name"]) for p in profiles]
+    names = [profile.name for profile in profiles]
     name = " e ".join((", ".join(names[:-1]), names[-1])) if len(names) > 1 else names[0]
-
-    # Consolida valores somando calorias/macros e tirando a média do score
-    calories = sum(int(p["calories"]) for p in profiles)
-    protein = round(sum(float(p["protein"]) for p in profiles), 1)
-    carbs = round(sum(float(p["carbs"]) for p in profiles), 1)
-    fat = round(sum(float(p["fat"]) for p in profiles), 1)
-    score = round(sum(float(p["score"]) for p in profiles) / len(profiles), 1)
-
-    # Junta ingredientes e remove duplicatas
-    ingredients_set: set[str] = set()
-    for p in profiles:
-        ingredients_set.update(p["ingredients"])
+    ingredients = sorted({ingredient for profile in profiles for ingredient in profile.ingredients})
 
     return MealAnalysisResponse(
         name=name,
-        calories=calories,
-        protein=protein,
-        carbs=carbs,
-        fat=fat,
-        ingredients=list(ingredients_set),
-        score=score,
+        calories=sum(profile.calories for profile in profiles),
+        protein=round(sum(profile.protein for profile in profiles), 1),
+        carbs=round(sum(profile.carbs for profile in profiles), 1),
+        fat=round(sum(profile.fat for profile in profiles), 1),
+        ingredients=ingredients,
+        score=round(sum(profile.score for profile in profiles) / len(profiles), 1),
     )

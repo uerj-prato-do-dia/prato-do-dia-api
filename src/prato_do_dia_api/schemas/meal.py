@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class MealComponentResponse(BaseModel):
@@ -20,4 +20,4 @@ class MealAnalysisResponse(BaseModel):
     score: float
     image_url: str | None = None
     overlay_url: str | None = None
-    components: list[MealComponentResponse] = []
+    components: list[MealComponentResponse] = Field(default_factory=list)
