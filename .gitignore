@@ -1,5 +1,6 @@
 .venv/
 __pycache__/
+*.py[cod]
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
@@ -9,5 +10,6 @@ build/
 *.egg-info/
 .env
 data/
+tests/output/*
+!tests/output/.gitkeep
 .DS_Store
-
