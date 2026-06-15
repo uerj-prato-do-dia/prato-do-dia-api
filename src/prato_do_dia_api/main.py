@@ -1,12 +1,12 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 
 from prato_do_dia_api.api.routes.health import router as health_router
 from prato_do_dia_api.api.routes.meals import router as meals_router
+from prato_do_dia_api.api.routes.v1 import router as v1_router
 from prato_do_dia_api.core.config import get_settings
-from prato_do_dia_api.services.ml_service import DATA_DIR
+from prato_do_dia_api.core.errors import ApiError, api_error_handler
 
 
 @asynccontextmanager
@@ -33,6 +33,5 @@ def read_root() -> dict[str, str]:
 
 app.include_router(health_router)
 app.include_router(meals_router)
-
-# Serve static files from data directory (uploads, overlays, etc.)
-app.mount("/static", StaticFiles(directory=str(DATA_DIR)), name="static")
+app.include_router(v1_router)
+app.add_exception_handler(ApiError, api_error_handler)

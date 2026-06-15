@@ -653,7 +653,7 @@ requires-dist = [
     { name = "fastapi" },
     { name = "orjson" },
     { name = "pillow" },
-    { name = "prato-do-dia-yolo-sam", directory = "/home/gabe/projects/prato-do-dia/prato-do-dia-ml" },
+    { name = "prato-do-dia-yolo-sam", editable = "../prato-do-dia-ml" },
     { name = "pydantic-settings" },
     { name = "python-multipart" },
     { name = "sqlalchemy" },
@@ -672,7 +672,7 @@ dev = [
 [[package]]
 name = "prato-do-dia-yolo-sam"
 version = "0.2.0"
-source = { directory = "/home/gabe/projects/prato-do-dia/prato-do-dia-ml" }
+source = { editable = "../prato-do-dia-ml" }
 dependencies = [
     { name = "numpy" },
     { name = "onnxruntime" },

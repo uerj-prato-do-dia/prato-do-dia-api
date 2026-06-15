@@ -65,12 +65,12 @@ async def analyze_meal(file: UploadFile = File(...), db: Session = Depends(get_d
                 profile = FOOD_PROFILES[det.class_id]
                 components_list.append(
                     MealComponentResponse(
-                        label=str(profile["name"]),
+                        label=profile.name,
                         confidence=float(det.confidence),
-                        calories=int(profile["calories"]),
-                        protein=float(profile["protein"]),
-                        carbs=float(profile["carbs"]),
-                        fat=float(profile["fat"]),
+                        calories=profile.calories,
+                        protein=profile.protein,
+                        carbs=profile.carbs,
+                        fat=profile.fat,
                     )
                 )
         if not components_list:
@@ -103,7 +103,7 @@ async def analyze_meal(file: UploadFile = File(...), db: Session = Depends(get_d
             if seg.class_id not in FOOD_PROFILES:
                 continue
             profile = FOOD_PROFILES[seg.class_id]
-            label = str(profile["name"])
+            label = profile.name
 
             # Serializa os pontos do polígono em formato JSON string
             polygon_json = json.dumps([[p[0], p[1]] for p in seg.polygon])
