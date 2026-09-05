@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any, Protocol
 
 from fastapi import UploadFile
-from PIL import Image, UnidentifiedImageError
+from PIL import Image, ImageOps, UnidentifiedImageError
 from prato_do_dia_ml.inference import (
     FoodPredictor,
     MLInferenceError,
@@ -35,7 +35,12 @@ from prato_do_dia_api.schemas.v1 import (
     MlWarmupResponse,
     ModelInfo,
 )
-from prato_do_dia_api.services.nutrition_mapper import FOOD_PROFILES, FoodProfile
+from prato_do_dia_api.services.nutrition_mapper import (
+    DEFAULT_TACO_PROFILE,
+    TACO_PROFILES,
+    FoodProfile,
+    calculate_portion,
+)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
@@ -89,9 +94,20 @@ class MealAnalysisService:
         already_loaded = self.is_loaded()
         started = time.perf_counter()
         try:
-            self._get_predictor()
+            predictor = self._get_predictor()
+            if not already_loaded:
+                # Perform dummy pass with 640x640 black image for ONNX graph compilation
+                buf = BytesIO()
+                dummy_img = Image.new("RGB", (640, 640), color="black")
+                dummy_img.save(buf, format="JPEG")
+                dummy_bytes = buf.getvalue()
+                predictor.predict_bytes(dummy_bytes)
         except MLModelUnavailableError as exc:
             raise ApiError(503, "model_unavailable", "Os modelos de ML não estão disponíveis.") from exc
+        except ApiError:
+            raise
+        except Exception as exc:
+            raise ApiError(500, "inference_failed", f"Falha no aquecimento do modelo: {exc}") from exc
 
         duration_ms = int((time.perf_counter() - started) * 1000)
         return MlWarmupResponse(
@@ -144,14 +160,20 @@ class MealAnalysisService:
         return response
 
     async def _read_upload(self, file: UploadFile) -> bytes:
-        content_type = (file.content_type or "").lower()
-        if content_type not in ALLOWED_MIME_TYPES and content_type not in DEFERRED_IMAGE_MIME_TYPES:
-            raise ApiError(415, "unsupported_media_type", "Tipo de arquivo não suportado.")
-        data = await file.read(self.settings.max_upload_bytes + 1)
-        if len(data) > self.settings.max_upload_bytes:
-            raise ApiError(413, "file_too_large", "Arquivo maior que o limite permitido.")
+        content_type = (file.content_type or "").lower().strip()
+        allowed_types = {"image/jpeg", "image/png", "application/octet-stream", ""}
+        if content_type not in allowed_types:
+            raise ApiError(
+                415,
+                "unsupported_media_type",
+                "Formato de arquivo não suportado. Envie apenas image/jpeg ou image/png.",
+            )
+        max_bytes = 5 * 1024 * 1024  # Strict 5MB limit
+        data = await file.read(max_bytes + 1)
+        if len(data) > max_bytes:
+            raise ApiError(413, "file_too_large", "O arquivo excede o limite máximo permitido de 5MB.")
         if not data:
-            raise ApiError(400, "invalid_image", "A imagem enviada não é válida.")
+            raise ApiError(400, "invalid_image", "A imagem enviada não é válida ou está vazia.")
         return data
 
     def _normalize_image(self, _content_type: str | None, image_bytes: bytes) -> tuple[tuple[int, int], bytes]:
@@ -159,10 +181,11 @@ class MealAnalysisService:
             with Image.open(BytesIO(image_bytes)) as image:
                 image.load()
                 self._validate_decoded_image(image)
-                normalized = image.convert("RGB")
+                transposed = ImageOps.exif_transpose(image)
+                normalized = transposed.convert("RGB")
                 output = BytesIO()
-                normalized.save(output, format="JPEG", quality=95)
-                return (image.width, image.height), output.getvalue()
+                normalized.save(output, format="JPEG", quality=90)
+                return (normalized.width, normalized.height), output.getvalue()
         except ApiError:
             raise
         except (UnidentifiedImageError, OSError) as exc:
@@ -221,21 +244,25 @@ class MealAnalysisService:
                 model=model,
             )
 
+        total_weight = round(sum(component.estimated_grams for component in components), 1)
         summary = MealSummary(
             name="Refeição analisada",
             calories=sum(component.calories for component in components),
             protein=round(sum(component.protein for component in components), 1),
             carbs=round(sum(component.carbs for component in components), 1),
             fat=round(sum(component.fat for component in components), 1),
+            fiber=round(sum(component.fiber for component in components), 1),
+            total_weight_g=total_weight,
             score=round(
                 sum(
-                    FOOD_PROFILES.get(_class_id_from_label(component.label), _DEFAULT_PROFILE).score
+                    TACO_PROFILES.get(_class_id_from_label(component.label), DEFAULT_TACO_PROFILE).score
                     for component in components
                 )
                 / len(components),
                 1,
             ),
             is_estimated=True,
+            source="TACO / TBCA (NEPA/UNICAMP & USP)",
         )
         return MealAnalysisResponse(
             analysis_id=analysis_id,
@@ -379,21 +406,27 @@ _DEFAULT_PROFILE = FoodProfile("Outro Alimento", 100, 5.0, 15.0, 2.0, ("Acompanh
 
 
 def _component_from_instance(index: int, instance: Any) -> MealComponent | None:
-    profile = FOOD_PROFILES.get(int(instance.proposal_class_id))
-    if profile is None:
+    try:
+        class_id = int(getattr(instance, "proposal_class_id", getattr(instance, "class_id", 0)))
+    except (ValueError, TypeError):
         return None
-    bbox = [round(float(value), 2) for value in instance.bbox]
+
+    area_pct = getattr(instance, "relative_area_percentage", None)
+    portion = calculate_portion(class_id, area_percentage=area_pct)
+    bbox_raw = getattr(instance, "bbox", getattr(instance, "box", ()))
+    bbox = [round(float(value), 2) for value in bbox_raw]
+
     return MealComponent(
-        id=int(instance.instance_id or index),
-        label=str(instance.label or instance.proposal_class_id),
-        display_name=profile.name,
-        confidence=round(float(instance.confidence), 4),
+        id=int(getattr(instance, "instance_id", None) or index),
+        label=str(getattr(instance, "label", None) or getattr(instance, "class_name", str(class_id))),
+        display_name=portion.name,
+        confidence=round(float(getattr(instance, "confidence", 0.0)), 4),
         bbox=bbox,
-        area_px=int(instance.area_px),
-        calories=profile.calories,
-        protein=profile.protein,
-        carbs=profile.carbs,
-        fat=profile.fat,
+        area_px=int(getattr(instance, "area_px", 0)),
+        calories=portion.calories,
+        protein=portion.protein,
+        carbs=portion.carbs,
+        fat=portion.fat,
         warnings=[],
     )
 

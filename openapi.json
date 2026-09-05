@@ -1,0 +1,1086 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Prato do Dia API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "Read Root",
+        "operationId": "read_root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Read Root  Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Read Health",
+        "operationId": "read_health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/meals/analyze": {
+      "post": {
+        "tags": [
+          "meals"
+        ],
+        "summary": "Analyze Meal",
+        "description": "Receives a photo, executes YOLOv11 + SAM 2 pipeline, persists data, and returns nutrition.",
+        "operationId": "analyze_meal_meals_analyze_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_analyze_meal_meals_analyze_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/prato_do_dia_api__schemas__meal__MealAnalysisResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/health": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Read Health V1",
+        "operationId": "read_health_v1_v1_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ml/status": {
+      "get": {
+        "tags": [
+          "ml"
+        ],
+        "summary": "Read Ml Status",
+        "operationId": "read_ml_status_v1_ml_status_get",
+        "parameters": [
+          {
+            "name": "verify_checksum",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Verify Checksum"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MlStatusResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ml/warmup": {
+      "post": {
+        "tags": [
+          "ml"
+        ],
+        "summary": "Warmup Ml",
+        "operationId": "warmup_ml_v1_ml_warmup_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MlWarmupResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/meals/analyze": {
+      "post": {
+        "tags": [
+          "meals"
+        ],
+        "summary": "Analyze Meal V1",
+        "operationId": "analyze_meal_v1_v1_meals_analyze_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_analyze_meal_v1_v1_meals_analyze_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/prato_do_dia_api__schemas__v1__MealAnalysisResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/assets/{kind}/{filename}": {
+      "get": {
+        "tags": [
+          "assets"
+        ],
+        "summary": "Read Asset",
+        "operationId": "read_asset_v1_assets__kind___filename__get",
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kind"
+            }
+          },
+          {
+            "name": "filename",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Filename"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/health": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Read Health V1",
+        "operationId": "read_health_v1_api_v1_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ml/status": {
+      "get": {
+        "tags": [
+          "ml"
+        ],
+        "summary": "Read Ml Status",
+        "operationId": "read_ml_status_api_v1_ml_status_get",
+        "parameters": [
+          {
+            "name": "verify_checksum",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Verify Checksum"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MlStatusResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ml/warmup": {
+      "post": {
+        "tags": [
+          "ml"
+        ],
+        "summary": "Warmup Ml",
+        "operationId": "warmup_ml_api_v1_ml_warmup_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MlWarmupResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/meals/analyze": {
+      "post": {
+        "tags": [
+          "meals"
+        ],
+        "summary": "Analyze Meal V1",
+        "operationId": "analyze_meal_v1_api_v1_meals_analyze_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_analyze_meal_v1_api_v1_meals_analyze_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/prato_do_dia_api__schemas__v1__MealAnalysisResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/{kind}/{filename}": {
+      "get": {
+        "tags": [
+          "assets"
+        ],
+        "summary": "Read Asset",
+        "operationId": "read_asset_api_v1_assets__kind___filename__get",
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kind"
+            }
+          },
+          {
+            "name": "filename",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Filename"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Body_analyze_meal_meals_analyze_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_analyze_meal_meals_analyze_post"
+      },
+      "Body_analyze_meal_v1_api_v1_meals_analyze_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_analyze_meal_v1_api_v1_meals_analyze_post"
+      },
+      "Body_analyze_meal_v1_v1_meals_analyze_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_analyze_meal_v1_v1_meals_analyze_post"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "service": {
+            "type": "string",
+            "title": "Service"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "service"
+        ],
+        "title": "HealthResponse"
+      },
+      "MealComponent": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence"
+          },
+          "bbox": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Bbox"
+          },
+          "area_px": {
+            "type": "integer",
+            "title": "Area Px"
+          },
+          "calories": {
+            "type": "integer",
+            "title": "Calories"
+          },
+          "protein": {
+            "type": "number",
+            "title": "Protein"
+          },
+          "carbs": {
+            "type": "number",
+            "title": "Carbs"
+          },
+          "fat": {
+            "type": "number",
+            "title": "Fat"
+          },
+          "fiber": {
+            "type": "number",
+            "title": "Fiber",
+            "default": 0.0
+          },
+          "estimated_grams": {
+            "type": "number",
+            "title": "Estimated Grams",
+            "default": 100.0
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "display_name",
+          "confidence",
+          "area_px",
+          "calories",
+          "protein",
+          "carbs",
+          "fat"
+        ],
+        "title": "MealComponent"
+      },
+      "MealComponentResponse": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence"
+          },
+          "calories": {
+            "type": "integer",
+            "title": "Calories"
+          },
+          "protein": {
+            "type": "number",
+            "title": "Protein"
+          },
+          "carbs": {
+            "type": "number",
+            "title": "Carbs"
+          },
+          "fat": {
+            "type": "number",
+            "title": "Fat"
+          },
+          "fiber": {
+            "type": "number",
+            "title": "Fiber",
+            "default": 0.0
+          },
+          "estimated_grams": {
+            "type": "number",
+            "title": "Estimated Grams",
+            "default": 100.0
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "confidence",
+          "calories",
+          "protein",
+          "carbs",
+          "fat"
+        ],
+        "title": "MealComponentResponse"
+      },
+      "MealImageInfo": {
+        "properties": {
+          "width": {
+            "type": "integer",
+            "title": "Width"
+          },
+          "height": {
+            "type": "integer",
+            "title": "Height"
+          },
+          "original_url": {
+            "type": "string",
+            "title": "Original Url"
+          },
+          "overlay_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overlay Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "width",
+          "height",
+          "original_url"
+        ],
+        "title": "MealImageInfo"
+      },
+      "MealSummary": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "calories": {
+            "type": "integer",
+            "title": "Calories"
+          },
+          "protein": {
+            "type": "number",
+            "title": "Protein"
+          },
+          "carbs": {
+            "type": "number",
+            "title": "Carbs"
+          },
+          "fat": {
+            "type": "number",
+            "title": "Fat"
+          },
+          "fiber": {
+            "type": "number",
+            "title": "Fiber",
+            "default": 0.0
+          },
+          "total_weight_g": {
+            "type": "number",
+            "title": "Total Weight G",
+            "default": 400.0
+          },
+          "score": {
+            "type": "number",
+            "title": "Score"
+          },
+          "is_estimated": {
+            "type": "boolean",
+            "title": "Is Estimated",
+            "default": true
+          },
+          "source": {
+            "type": "string",
+            "title": "Source",
+            "default": "TACO / TBCA (NEPA/UNICAMP & USP)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "calories",
+          "protein",
+          "carbs",
+          "fat",
+          "score"
+        ],
+        "title": "MealSummary"
+      },
+      "MlModelFileStatus": {
+        "properties": {
+          "filename": {
+            "type": "string",
+            "title": "Filename"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "present": {
+            "type": "boolean",
+            "title": "Present"
+          },
+          "size_bytes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size Bytes"
+          },
+          "sha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sha256"
+          },
+          "checksum_ok": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Checksum Ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "filename",
+          "role",
+          "present"
+        ],
+        "title": "MlModelFileStatus"
+      },
+      "MlStatusResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "available",
+              "unavailable"
+            ],
+            "title": "Status"
+          },
+          "available": {
+            "type": "boolean",
+            "title": "Available"
+          },
+          "loaded": {
+            "type": "boolean",
+            "title": "Loaded"
+          },
+          "models_dir": {
+            "type": "string",
+            "title": "Models Dir"
+          },
+          "models": {
+            "items": {
+              "$ref": "#/components/schemas/MlModelFileStatus"
+            },
+            "type": "array",
+            "title": "Models"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "available",
+          "loaded",
+          "models_dir"
+        ],
+        "title": "MlStatusResponse"
+      },
+      "MlWarmupResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "ready",
+            "title": "Status"
+          },
+          "available": {
+            "type": "boolean",
+            "title": "Available"
+          },
+          "loaded": {
+            "type": "boolean",
+            "title": "Loaded"
+          },
+          "load_duration_ms": {
+            "type": "integer",
+            "title": "Load Duration Ms"
+          },
+          "already_loaded": {
+            "type": "boolean",
+            "title": "Already Loaded",
+            "default": false
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "available",
+          "loaded",
+          "load_duration_ms"
+        ],
+        "title": "MlWarmupResponse"
+      },
+      "ModelInfo": {
+        "properties": {
+          "pipeline": {
+            "type": "string",
+            "title": "Pipeline"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pipeline",
+          "version"
+        ],
+        "title": "ModelInfo"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "prato_do_dia_api__schemas__meal__MealAnalysisResponse": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "calories": {
+            "type": "integer",
+            "title": "Calories"
+          },
+          "protein": {
+            "type": "number",
+            "title": "Protein"
+          },
+          "carbs": {
+            "type": "number",
+            "title": "Carbs"
+          },
+          "fat": {
+            "type": "number",
+            "title": "Fat"
+          },
+          "fiber": {
+            "type": "number",
+            "title": "Fiber",
+            "default": 0.0
+          },
+          "total_weight_g": {
+            "type": "number",
+            "title": "Total Weight G",
+            "default": 400.0
+          },
+          "ingredients": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Ingredients"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source",
+            "default": "TACO / TBCA (NEPA/UNICAMP & USP)"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
+          "overlay_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overlay Url"
+          },
+          "components": {
+            "items": {
+              "$ref": "#/components/schemas/MealComponentResponse"
+            },
+            "type": "array",
+            "title": "Components"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "calories",
+          "protein",
+          "carbs",
+          "fat",
+          "ingredients",
+          "score"
+        ],
+        "title": "MealAnalysisResponse"
+      },
+      "prato_do_dia_api__schemas__v1__MealAnalysisResponse": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "title": "Schema Version",
+            "default": "1.0"
+          },
+          "analysis_id": {
+            "type": "string",
+            "title": "Analysis Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "success",
+              "empty"
+            ],
+            "title": "Status"
+          },
+          "image": {
+            "$ref": "#/components/schemas/MealImageInfo"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MealSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "components": {
+            "items": {
+              "$ref": "#/components/schemas/MealComponent"
+            },
+            "type": "array",
+            "title": "Components"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "model": {
+            "$ref": "#/components/schemas/ModelInfo"
+          }
+        },
+        "type": "object",
+        "required": [
+          "analysis_id",
+          "status",
+          "image",
+          "summary",
+          "model"
+        ],
+        "title": "MealAnalysisResponse"
+      }
+    }
+  }
+}

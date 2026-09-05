@@ -46,10 +46,13 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 def init_db() -> None:
-    """Creates all database tables automatically if they do not exist."""
+    """Creates all database tables automatically if they do not exist and seeds TACO data."""
     from prato_do_dia_api.db import models  # noqa: F401
+    from prato_do_dia_api.db.seed_taco import seed_taco_data
 
     Base.metadata.create_all(bind=engine)
+    with SessionLocal() as db:
+        seed_taco_data(db)
 
 
 def get_db() -> Generator[Session, None, None]:

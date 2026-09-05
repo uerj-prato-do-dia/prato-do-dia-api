@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Literal
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
@@ -19,7 +19,7 @@ ApiErrorCode = Literal[
 
 
 class ApiError(Exception):
-    def __init__(self, status_code: int, code: ApiErrorCode, message: str, details: Any = None) -> None:
+    def __init__(self, status_code: int, code: ApiErrorCode, message: str, details: object = None) -> None:
         self.status_code = status_code
         self.code: ApiErrorCode = code
         self.message = message

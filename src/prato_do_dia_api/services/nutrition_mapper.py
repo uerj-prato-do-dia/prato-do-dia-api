@@ -1,7 +1,116 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 
+from sqlalchemy.orm import Session
+
+from prato_do_dia_api.db.models import TacoFoodItem
 from prato_do_dia_api.schemas.meal import MealAnalysisResponse
 
+
+@dataclass(frozen=True)
+class TacoFoodProfile:
+    """Official TACO/TBCA nutritional values per 100g of ready/cooked food."""
+
+    name: str
+    calories_100g: float
+    protein_100g: float
+    carbs_100g: float
+    fat_100g: float
+    fiber_100g: float
+    ingredients: tuple[str, ...]
+    score: float
+    source: str = "TACO / TBCA"
+
+
+@dataclass(frozen=True)
+class CalculatedPortion:
+    """Estimated portion weight and nutritional breakdown based on relative area."""
+
+    class_id: int
+    name: str
+    estimated_grams: float
+    calories: int
+    protein: float
+    carbs: float
+    fat: float
+    fiber: float
+    ingredients: tuple[str, ...]
+    score: float
+
+
+# Official TACO/TBCA Database per 100g for Canonical Classes [0..15]
+TACO_PROFILES: dict[int, TacoFoodProfile] = {
+    0: TacoFoodProfile("Tomate", 15.0, 1.1, 3.1, 0.2, 1.2, ("Tomate cru",), 10.0),
+    1: TacoFoodProfile("Salada Verde", 14.0, 1.3, 2.4, 0.2, 1.7, ("Alface", "Rúcula"), 10.0),
+    2: TacoFoodProfile("Feijão", 76.0, 4.8, 13.6, 0.5, 8.5, ("Feijão cozido",), 9.0),
+    3: TacoFoodProfile("Batata Frita", 267.0, 5.0, 35.6, 13.1, 3.2, ("Batata frita", "Óleo"), 4.5),
+    4: TacoFoodProfile("Arroz", 128.0, 2.5, 28.1, 0.2, 1.6, ("Arroz branco cozido",), 8.0),
+    5: TacoFoodProfile("Carne Moída", 212.0, 26.5, 0.0, 11.2, 0.0, ("Carne bovina moída refogada",), 7.5),
+    6: TacoFoodProfile("Purê de Batata", 112.0, 2.2, 16.8, 4.1, 1.5, ("Batata", "Leite", "Manteiga"), 8.0),
+    7: TacoFoodProfile("Farofa", 406.0, 2.1, 80.3, 9.1, 6.8, ("Farinha de mandioca", "Manteiga"), 6.0),
+    8: TacoFoodProfile("Cenoura", 34.0, 0.8, 7.7, 0.2, 3.2, ("Cenoura crua/cozida",), 10.0),
+    9: TacoFoodProfile("Ovo Frito", 240.0, 15.6, 0.6, 18.6, 0.0, ("Ovo frito", "Óleo"), 9.0),
+    10: TacoFoodProfile("Massa / Macarrão", 157.0, 5.8, 30.9, 0.9, 1.8, ("Macarrão espaguete cozido",), 7.0),
+    11: TacoFoodProfile("Frango Grelhado", 165.0, 31.5, 0.0, 3.2, 0.0, ("Filé de peito de frango grelhado",), 9.0),
+    12: TacoFoodProfile("Azeitona", 137.0, 1.0, 5.0, 14.0, 3.0, ("Azeitona",), 7.0),
+    13: TacoFoodProfile("Batata Palha", 512.0, 4.3, 50.8, 32.5, 3.8, ("Batata palha",), 4.0),
+    14: TacoFoodProfile("Estrogonofe", 178.0, 14.2, 4.8, 11.5, 0.5, ("Carne", "Creme de leite", "Cogumelos"), 6.0),
+    15: TacoFoodProfile("Carne Bovina (Bife)", 219.0, 31.7, 0.0, 9.5, 0.0, ("Bife de carne bovina grelhado",), 8.0),
+}
+
+DEFAULT_TACO_PROFILE = TacoFoodProfile(
+    "Outro Alimento", 150.0, 5.0, 15.0, 3.0, 1.0, ("Acompanhamento",), 7.0
+)
+
+
+def calculate_portion(
+    class_id: int,
+    area_percentage: float | None = None,
+    total_plate_weight_g: float = 400.0,
+    db: Session | None = None,
+) -> CalculatedPortion:
+    """Calculate estimated portion weight (g) and nutritional values based on TACO database and relative area."""
+    profile = TACO_PROFILES.get(class_id, DEFAULT_TACO_PROFILE)
+
+    if db is not None:
+        db_item = db.query(TacoFoodItem).filter(TacoFoodItem.class_id == class_id).first()
+        if db_item is not None:
+            profile = TacoFoodProfile(
+                name=db_item.name,
+                calories_100g=db_item.calories_kcal,
+                protein_100g=db_item.protein_g,
+                carbs_100g=db_item.carbs_g,
+                fat_100g=db_item.fat_g,
+                fiber_100g=db_item.fiber_g,
+                ingredients=(db_item.name,),
+                score=8.0,
+                source=db_item.source,
+            )
+
+    if area_percentage is not None and area_percentage > 0:
+        grams = round(total_plate_weight_g * (area_percentage / 100.0), 1)
+        grams = max(10.0, grams)  # Minimum portion floor
+    else:
+        grams = 100.0  # Default 100g portion if area is unspecified
+
+    factor = grams / 100.0
+
+    return CalculatedPortion(
+        class_id=class_id,
+        name=profile.name,
+        estimated_grams=grams,
+        calories=round(profile.calories_100g * factor),
+        protein=round(profile.protein_100g * factor, 1),
+        carbs=round(profile.carbs_100g * factor, 1),
+        fat=round(profile.fat_100g * factor, 1),
+        fiber=round(profile.fiber_100g * factor, 1),
+        ingredients=profile.ingredients,
+        score=profile.score,
+    )
+
+
+# --- Backward Compatibility Layer for Legacy Callers ---
 
 @dataclass(frozen=True)
 class FoodProfile:
@@ -15,32 +124,16 @@ class FoodProfile:
 
 
 FOOD_PROFILES: dict[int, FoodProfile] = {
-    0: FoodProfile("Tomate", 20, 1.0, 4.0, 0.2, ("Tomate",), 10.0),
-    1: FoodProfile("Salada Verde", 15, 1.2, 3.0, 0.1, ("Alface", "Rúcula"), 10.0),
-    2: FoodProfile("Feijão", 130, 8.0, 24.0, 0.5, ("Feijão preto",), 9.0),
-    3: FoodProfile("Batata Frita", 312, 3.4, 41.0, 15.0, ("Batata", "Óleo vegetal"), 4.5),
-    4: FoodProfile("Arroz", 130, 2.7, 28.0, 0.3, ("Arroz branco",), 8.0),
-    5: FoodProfile("Carne Moída", 250, 26.0, 0.0, 15.0, ("Carne bovina",), 7.5),
-    6: FoodProfile("Batata Cozida", 87, 2.0, 20.0, 0.1, ("Batata",), 8.5),
-    7: FoodProfile("Aspargos", 20, 2.2, 3.8, 0.1, ("Aspargos",), 9.5),
-    8: FoodProfile("Cenoura", 41, 0.9, 10.0, 0.2, ("Cenoura",), 10.0),
-    9: FoodProfile("Ovo", 155, 13.0, 1.1, 11.0, ("Ovo",), 9.0),
-    10: FoodProfile("Outro Alimento", 100, 5.0, 15.0, 2.0, ("Acompanhamento",), 7.0),
-    11: FoodProfile("Frango Grelhado", 165, 31.0, 0.0, 3.6, ("Frango",), 9.0),
-    12: FoodProfile("Azeitona", 115, 0.8, 6.0, 11.0, ("Azeitona",), 7.0),
-    13: FoodProfile("Batata Palha", 500, 6.0, 50.0, 30.0, ("Batata", "Gordura vegetal"), 4.0),
-    14: FoodProfile("Estrogonofe", 350, 20.0, 10.0, 25.0, ("Carne", "Creme de leite", "Champignon"), 6.0),
-    15: FoodProfile("Carne de Porco", 242, 27.0, 0.0, 14.0, ("Lombo suíno",), 8.0),
-    46: FoodProfile("Banana", 89, 1.1, 22.8, 0.3, ("Banana",), 9.0),
-    47: FoodProfile("Maçã", 52, 0.3, 13.8, 0.2, ("Maçã",), 9.5),
-    48: FoodProfile("Sanduíche", 350, 15.0, 40.0, 12.0, ("Pão", "Queijo", "Presunto"), 7.0),
-    49: FoodProfile("Laranja", 47, 0.9, 11.8, 0.1, ("Laranja",), 10.0),
-    50: FoodProfile("Brócolis", 34, 2.8, 6.6, 0.4, ("Brócolis",), 10.0),
-    51: FoodProfile("Cenoura", 41, 0.9, 10.0, 0.2, ("Cenoura",), 10.0),
-    52: FoodProfile("Cachorro-Quente", 290, 10.0, 28.0, 16.0, ("Pão de leite", "Salsicha"), 4.0),
-    53: FoodProfile("Pizza", 266, 11.0, 33.0, 10.0, ("Massa de pizza", "Queijo", "Tomate"), 5.5),
-    54: FoodProfile("Rosquinha/Bolinho", 452, 4.9, 51.3, 25.2, ("Farinha", "Açúcar", "Gordura"), 3.0),
-    55: FoodProfile("Bolo", 389, 2.5, 53.0, 15.0, ("Farinha", "Açúcar", "Ovos"), 3.5),
+    cid: FoodProfile(
+        name=taco.name,
+        calories=round(taco.calories_100g),
+        protein=round(taco.protein_100g, 1),
+        carbs=round(taco.carbs_100g, 1),
+        fat=round(taco.fat_100g, 1),
+        ingredients=taco.ingredients,
+        score=taco.score,
+    )
+    for cid, taco in TACO_PROFILES.items()
 }
 
 FALLBACK_PROFILE = FoodProfile(

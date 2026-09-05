@@ -7,6 +7,8 @@ The format is based on Keep a Changelog.
 ## [Unreleased]
 
 ### Added
+- Added SQLAlchemy ORM model `TacoFoodItem` and automatic database seeding script `seed_taco.py` populating official TACO nutritional values per 100g.
+- Added REST routes `/api/v1/foods/search` and `/api/v1/foods/{class_id}` for nutritional database lookups.
 - Created the detailed identified components list (`components`) to return individual macros, labels, and confidence metrics for each detected food item in the `/meals/analyze` endpoint.
 - Served static files from `data/` directory at `/static` to make generated segmentation overlays and uploads accessible via URL.
 - Added COCO dataset food classes (IDs 46-55: Banana, Apple, Sandwich, Orange, Broccoli, Carrot, Hot Dog, Pizza, Donut, Cake) to `FOOD_PROFILES` to support prediction from standard pre-trained YOLO11n weights.

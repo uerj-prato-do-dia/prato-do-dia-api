@@ -37,4 +37,19 @@ class MealComponent(Base):
     meal: Mapped["MealRecord"] = relationship("MealRecord", back_populates="components")
 
 
-__all__ = ["Base", "MealComponent", "MealRecord"]
+class TacoFoodItem(Base):
+    __tablename__ = "taco_food_items"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    class_id: Mapped[int | None] = mapped_column(index=True, nullable=True)
+    category: Mapped[str] = mapped_column(String(100), index=True)
+    name: Mapped[str] = mapped_column(String(255), index=True)
+    calories_kcal: Mapped[float] = mapped_column()
+    protein_g: Mapped[float] = mapped_column()
+    carbs_g: Mapped[float] = mapped_column()
+    fat_g: Mapped[float] = mapped_column()
+    fiber_g: Mapped[float] = mapped_column(default=0.0)
+    source: Mapped[str] = mapped_column(String(100), default="TACO NEPA/UNICAMP & TBCA USP")
+
+
+__all__ = ["Base", "MealComponent", "MealRecord", "TacoFoodItem"]

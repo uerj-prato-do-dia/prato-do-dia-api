@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -16,7 +16,7 @@ class ApiErrorBody(BaseModel):
         "contract_error",
     ]
     message: str
-    details: Any = None
+    details: object = None
 
 
 class ApiErrorResponse(BaseModel):
@@ -65,8 +65,11 @@ class MealSummary(BaseModel):
     protein: float
     carbs: float
     fat: float
+    fiber: float = 0.0
+    total_weight_g: float = 400.0
     score: float
     is_estimated: bool = True
+    source: str = "TACO / TBCA (NEPA/UNICAMP & USP)"
 
 
 class MealComponent(BaseModel):
@@ -80,6 +83,8 @@ class MealComponent(BaseModel):
     protein: float
     carbs: float
     fat: float
+    fiber: float = 0.0
+    estimated_grams: float = 100.0
     warnings: list[str] = Field(default_factory=list)
 
 
