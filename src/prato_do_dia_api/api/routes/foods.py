@@ -42,9 +42,7 @@ def search_foods(
     search_pattern = f"%{query.strip()}%"
     results = (
         db.query(TacoFoodItem)
-        .filter(
-            (TacoFoodItem.name.ilike(search_pattern)) | (TacoFoodItem.category.ilike(search_pattern))
-        )
+        .filter((TacoFoodItem.name.ilike(search_pattern)) | (TacoFoodItem.category.ilike(search_pattern)))
         .limit(limit)
         .all()
     )

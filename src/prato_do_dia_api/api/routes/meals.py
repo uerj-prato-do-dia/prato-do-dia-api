@@ -68,15 +68,11 @@ async def analyze_meal(file: UploadFile = File(...), db: Session = Depends(get_d
                     )
                 )
         if not components_list:
-            # Fallback mock components se nada for detectado
-            components_list = [
-                MealComponentResponse(label="Arroz", confidence=1.0, calories=130, protein=2.7, carbs=28.0, fat=0.3),
-                MealComponentResponse(label="Feijão", confidence=1.0, calories=76, protein=4.8, carbs=14.0, fat=0.5),
-                MealComponentResponse(
-                    label="Frango Grelhado", confidence=1.0, calories=165, protein=31.0, carbs=0.0, fat=3.6
-                ),
-                MealComponentResponse(label="Salada", confidence=1.0, calories=15, protein=0.8, carbs=3.0, fat=0.1),
-            ]
+            response.name = "Nenhum alimento detectado"
+            response.calories = 0
+            response.protein = 0.0
+            response.carbs = 0.0
+            response.fat = 0.0
         response.components = components_list
 
         # Salva o cabeçalho da refeição no banco de dados

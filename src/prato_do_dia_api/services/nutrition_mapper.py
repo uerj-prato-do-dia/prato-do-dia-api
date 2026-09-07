@@ -59,9 +59,7 @@ TACO_PROFILES: dict[int, TacoFoodProfile] = {
     15: TacoFoodProfile("Carne Bovina (Bife)", 219.0, 31.7, 0.0, 9.5, 0.0, ("Bife de carne bovina grelhado",), 8.0),
 }
 
-DEFAULT_TACO_PROFILE = TacoFoodProfile(
-    "Outro Alimento", 150.0, 5.0, 15.0, 3.0, 1.0, ("Acompanhamento",), 7.0
-)
+DEFAULT_TACO_PROFILE = TacoFoodProfile("Outro Alimento", 150.0, 5.0, 15.0, 3.0, 1.0, ("Acompanhamento",), 7.0)
 
 
 def calculate_portion(
@@ -111,6 +109,7 @@ def calculate_portion(
 
 
 # --- Backward Compatibility Layer for Legacy Callers ---
+
 
 @dataclass(frozen=True)
 class FoodProfile:
